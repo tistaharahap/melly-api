@@ -1,0 +1,36 @@
+[project]
+name = "melly"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "Batista Harahap", email = "batista@bango29.com" }
+]
+dependencies = [
+    "fastapi>=0.111.0",
+    "pydantic>=2.7.4",
+    "typer>=0.12.3",
+]
+readme = "README.md"
+requires-python = ">= 3.8"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "pytest>=8.2.2",
+    "pytest-asyncio>=0.23.7",
+    "ruff>=0.4.10",
+    "ruff-lsp>=0.0.53",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/melly"]
+
+[tool.ruff]
+line-length = 120
