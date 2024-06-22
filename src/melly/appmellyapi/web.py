@@ -32,7 +32,7 @@ allows people to share bookmarks, notes, and highlights from their favorites.
 """
 
 app = FastAPI(
-    title="SleekEmail API",
+    title="Melly API",
     description=description,
     version=version,
     host=api_settings.host,

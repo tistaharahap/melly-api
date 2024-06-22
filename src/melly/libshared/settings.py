@@ -1,8 +1,8 @@
 import base64
 from functools import lru_cache
-from typing import Literal, List
+from typing import Literal
 
-from pydantic import HttpUrl
+from pydantic import HttpUrl, field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -15,10 +15,7 @@ class MellyAPISettings(BaseSettings):
     port: int = 8000
     debug: bool = False
     env: str = "dev"
-    cors_origins: List[str] = [
-        "http://localhost:3000",
-        "http://localhost:5173",
-    ]
+    cors_origins: str
 
     # DB
     mongo_url: str = "mongodb://127.0.0.1:27017/?replicaSet=rs0"
@@ -36,9 +33,19 @@ class MellyAPISettings(BaseSettings):
     auth_token_expiry: int = 3600
 
     # Social Providers
-    social_auth_expiry_in_seconds = 600
+    social_auth_expiry_in_seconds: int = 600
     google_client_id: str
     google_client_secret: str
+
+    @field_validator("base_url")
+    @classmethod
+    def validate_base_url(cls, v):
+        return str(v).rstrip("/")
+
+    @field_validator("fe_base_url")
+    @classmethod
+    def validate_fe_base_url(cls, v):
+        return str(v).rstrip("/")
 
     @property
     def db_name(self) -> str:

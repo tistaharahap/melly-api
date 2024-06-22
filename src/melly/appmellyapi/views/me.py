@@ -15,6 +15,7 @@ me_router = APIRouter()
 @me_router.get(
     "/me/auth/google",
     summary="Get Google Login URL",
+    tags=["me", "auth"],
     response_model=UrlResponse,
 )
 async def get_google_login_url(
@@ -30,15 +31,16 @@ async def get_google_login_url(
 
 
 @me_router.get(
-    "/me/auth/google/callback/{nonce}",
+    "/me/auth/google/callback",
     summary="Google Auth Callback",
+    tags=["me", "auth"],
     response_class=RedirectResponse,
 )
 async def google_auth_callback(
-    nonce: Annotated[
+    state: Annotated[
         str,
         Doc("""
-            The nonce generated from the auth session initially.
+            The state from the Google auth session.
         """),
     ],
     code: Annotated[
@@ -48,7 +50,7 @@ async def google_auth_callback(
         """),
     ],
 ):
-    session = await Account.get_auth_session(nonce=nonce)
+    session = await Account.get_auth_session(nonce=state)
     email, name, picture = await Account.authorize_google(code=code, session=session)
     await Account.maybe_create_user(email=email, name=name, picture=picture, session=session)
 

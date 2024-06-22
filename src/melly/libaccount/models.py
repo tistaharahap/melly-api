@@ -41,6 +41,9 @@ class SocialAuthSession(Document, BaseDateTimeMeta):
 
     exchange_code: str | None = None
 
+    class Settings:
+        name = "social_auth_sessions"
+
     async def create_exchange_code(self) -> str:
         self.exchange_code = token_hex(55)
         await self.save()

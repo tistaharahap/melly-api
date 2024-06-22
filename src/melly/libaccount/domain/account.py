@@ -1,8 +1,6 @@
-from datetime import datetime
 from typing import Literal, Tuple
 
 import httpx
-import pytz
 import ujson
 from fastapi import Request, HTTPException
 from pydantic import IPvAnyAddress, ValidationError
@@ -17,8 +15,8 @@ class Account:
     def get_login_url(cls, provider: Literal["google"], nonce: str) -> str:
         if provider == "google":
             client_id = api_settings.google_client_id
-            redirect_uri = f"{api_settings.base_url}/v1/me/auth/google/callback/{nonce}"
-            return f"https://accounts.google.com/o/oauth2/auth?response_type=code&client_id={client_id}&redirect_uri={redirect_uri}&scope=openid%20profile%20email%20name&access_type=offline"
+            redirect_uri = f"{api_settings.base_url}/v1/me/auth/google/callback"
+            return f"https://accounts.google.com/o/oauth2/auth?response_type=code&client_id={client_id}&redirect_uri={redirect_uri}&scope=openid%20profile%20email&access_type=offline&state={nonce}"
 
         raise ValueError("Invalid provider")
 
@@ -51,11 +49,11 @@ class Account:
         if not session:
             raise HTTPException(status_code=409, detail="Invalid session")
 
-        now = datetime.now(tz=pytz.UTC)
-        delta = now - session.created_at
-        if delta.seconds > api_settings.social_auth_expiry_in_seconds:
-            await session.remove_session()
-            raise HTTPException(status_code=409, detail="Invalid session")
+        # now = datetime.now(tz=pytz.UTC)
+        # delta = now - session.created_at.astimezone(tz=pytz.UTC)
+        # if delta.seconds > api_settings.social_auth_expiry_in_seconds:
+        #     await session.remove_session()
+        #     raise HTTPException(status_code=409, detail="Invalid session")
 
         return session
 
@@ -92,6 +90,7 @@ class Account:
             picture = resp_body.get("picture")
 
             session.auth_provider_access_token = access_token
+            session.auth_provider_user_id = resp_body.get("id")
             session.profile = resp_body
             await session.save()
 
