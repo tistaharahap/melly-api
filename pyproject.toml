@@ -42,3 +42,6 @@ packages = ["src/melly"]
 
 [tool.ruff]
 line-length = 120
+
+[tool.rye.scripts]
+docker-build = "bin/docker-build.sh"

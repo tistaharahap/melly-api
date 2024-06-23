@@ -62,10 +62,10 @@ echo 'MONGO_URL is: '${MONGO_URL}
 # Running the app
 if test "x${ENV}" = 'xdev'; then
   if test "x${APPNAME}" = "xapi" ; then
-    uvicorn appmellyapi.web:app --host $HOST --port $PORT --log-level debug --reload --reload-dir src
+    uvicorn melly.appmellyapi.web:app --host $HOST --port $PORT --log-level debug --reload --reload-dir src
   fi
 else
   if test "x${APPNAME}" = "xapi" ; then
-    uvicorn appmellyapi.appsleekemailapi.web:app --host $HOST --port $PORT --log-level info --proxy-headers --workers $WEB_CONCURRENCY
+    uvicorn melly.appmellyapi.web:app --host $HOST --port $PORT --log-level info --proxy-headers --workers $WEB_CONCURRENCY
   fi
 fi
