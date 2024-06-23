@@ -2,13 +2,15 @@ from typing import Literal, Tuple
 
 import httpx
 import ujson
+from bson import ObjectId
 from fastapi import Request, HTTPException
-from fastapi_jwt_auth3.jwtauth import generate_jwt_token
+from fastapi_jwt_auth3.errors import JWTDecodeError
+from fastapi_jwt_auth3.jwtauth import generate_jwt_token, verify_token
 from fastapi_jwt_auth3.models import JWTPresetClaims
 from pydantic import IPvAnyAddress, ValidationError
 
 from melly.appmellyapi.auth import jwt_auth
-from melly.libaccount.models import SocialAuthSession, User, AccessTokenResponse
+from melly.libaccount.models import SocialAuthSession, User, AccessTokenResponse, RefreshToken
 from melly.libshared.models import UrlResponse
 from melly.libshared.settings import api_settings
 
@@ -137,7 +139,7 @@ class Account:
         return redirect_url
 
     @classmethod
-    def generate_access_token(cls, user: User) -> Tuple[str, str]:
+    def generate_access_token(cls, user: User) -> str:
         preset_claims = JWTPresetClaims.factory(
             issuer=jwt_auth.issuer,
             expiry=api_settings.auth_token_expiry,
@@ -145,11 +147,14 @@ class Account:
             subject=str(user.id),
         )
         claims = {"email": user.email, "name": user.name, "picture": str(user.picture)}
-        print(api_settings.auth_private_key)
 
-        access_token = generate_jwt_token(
+        return generate_jwt_token(
             header=jwt_auth.header, preset_claims=preset_claims, secret_key=api_settings.auth_private_key, claims=claims
         )
+
+    @classmethod
+    def generate_access_and_refresh_token(cls, user: User) -> Tuple[str, str]:
+        access_token = cls.generate_access_token(user=user)
         refresh_token = jwt_auth.generate_refresh_token(access_token=access_token)
 
         return access_token, refresh_token
@@ -164,6 +169,34 @@ class Account:
         query = {"auth_provider_user_id": session.auth_provider_user_id, "deleted_at": None}
         user = await User.find_one(query)
 
-        access_token, refresh_token = cls.generate_access_token(user=user)
+        access_token, refresh_token = cls.generate_access_and_refresh_token(user=user)
 
         return AccessTokenResponse(access_token=access_token, refresh_token=refresh_token)
+
+    @classmethod
+    async def exchange_refresh_token(cls, payload: RefreshToken) -> AccessTokenResponse:
+        try:
+            verified = verify_token(
+                token=payload.refresh_token,
+                key=api_settings.auth_public_key,
+                algorithm=api_settings.auth_algorithm,
+                audience=jwt_auth.audience,
+                issuer=jwt_auth.issuer,
+                leeway=jwt_auth.leeway,
+            )
+        except JWTDecodeError:
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+        try:
+            user_id = ObjectId(verified.get("sub"))
+        except TypeError:
+            raise HTTPException(status_code=401, detail="Invalid user")
+
+        query = {"_id": user_id, "deleted_at": None}
+        user = await User.find_one(query)
+        if not user:
+            raise HTTPException(status_code=401, detail="Invalid user")
+
+        access_token = cls.generate_access_token(user=user)
+
+        return AccessTokenResponse(access_token=access_token, refresh_token=payload.refresh_token)

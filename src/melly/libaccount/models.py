@@ -74,3 +74,7 @@ class SocialAuthSession(Document, BaseDateTimeMeta):
 class AccessTokenResponse(BaseMellyAPIModel):
     access_token: str
     refresh_token: str
+
+
+class RefreshToken(BaseMellyAPIModel):
+    refresh_token: str

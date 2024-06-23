@@ -37,3 +37,11 @@ class TokenPayload(BaseModel):
 
 class UrlResponse(BaseMellyAPIModel):
     url: HttpUrl
+
+
+class MyProfile(BaseMellyAPIModel):
+    email: EmailStr
+    name: str
+    picture: HttpUrl | None = None
+
+    created_at: datetime

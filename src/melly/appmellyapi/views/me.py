@@ -1,14 +1,15 @@
 from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import RedirectResponse
 from typing_extensions import Doc
 
 from fastapi import Request
 
+from melly.appmellyapi.auth import jwt_auth
 from melly.libaccount.domain.account import Account
-from melly.libaccount.models import AccessTokenResponse
-from melly.libshared.models import UrlResponse
+from melly.libaccount.models import AccessTokenResponse, RefreshToken
+from melly.libshared.models import UrlResponse, TokenPayload, MyProfile
 
 me_router = APIRouter()
 
@@ -75,3 +76,31 @@ async def exchange_code(
     ],
 ):
     return await Account.exchange_code(code=code)
+
+
+@me_router.post(
+    "/me/access/token/refresh",
+    summary="Exchange refresh token for access token",
+    tags=["me", "auth"],
+    response_model=AccessTokenResponse,
+)
+async def exchange_refresh_token(payload: RefreshToken):
+    return await Account.exchange_refresh_token(payload=payload)
+
+
+@me_router.get(
+    "/me",
+    summary="Get my profile",
+    tags=["me"],
+    response_model=MyProfile,
+)
+async def my_profile(
+    claims: Annotated[
+        TokenPayload,
+        Doc("""
+            The projection model for the JWT token.
+        """),
+    ] = Depends(jwt_auth),
+):
+    user = await Account.get_user_by_email(email=claims.email)
+    return MyProfile(**user.model_dump())

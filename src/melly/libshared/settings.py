@@ -31,6 +31,7 @@ class MellyAPISettings(BaseSettings):
     b64_auth_private_key: str
     b64_auth_public_key: str
     auth_token_expiry: int = 3600
+    refresh_token_expiry: int = 60 * 60 * 24 * 7
 
     # Social Providers
     social_auth_expiry_in_seconds: int = 600

@@ -15,6 +15,7 @@ jwt_auth = FastAPIJWTAuth(
     public_key=api_settings.auth_public_key,
     public_key_id=public_key_id,
     expiry=api_settings.auth_token_expiry,
+    refresh_token_expiry=api_settings.refresh_token_expiry,
     leeway=0,
     project_to=TokenPayload,
 )
