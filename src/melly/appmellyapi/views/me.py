@@ -7,6 +7,7 @@ from typing_extensions import Doc
 from fastapi import Request
 
 from melly.libaccount.domain.account import Account
+from melly.libaccount.models import AccessTokenResponse
 from melly.libshared.models import UrlResponse
 
 me_router = APIRouter()
@@ -57,3 +58,20 @@ async def google_auth_callback(
     fe_redir_url = await Account.get_fe_redirect_url(session=session)
 
     return RedirectResponse(url=fe_redir_url, status_code=302)
+
+
+@me_router.get(
+    "/me/access/token",
+    summary="Exchange authorization code for access token",
+    tags=["me", "auth"],
+    response_model=AccessTokenResponse,
+)
+async def exchange_code(
+    code: Annotated[
+        str,
+        Doc("""
+            The authorization code from the auth provider.
+        """),
+    ],
+):
+    return await Account.exchange_code(code=code)

@@ -6,7 +6,7 @@ import pytz
 from beanie import Document
 from pydantic import EmailStr, HttpUrl, Field, IPvAnyAddress
 
-from melly.libshared.models import BaseDateTimeMeta
+from melly.libshared.models import BaseDateTimeMeta, BaseMellyAPIModel
 
 
 class User(Document, BaseDateTimeMeta):
@@ -69,3 +69,8 @@ class SocialAuthSession(Document, BaseDateTimeMeta):
     async def remove_session(self) -> None:
         self.deleted_at = datetime.now(tz=pytz.UTC)
         await self.save()
+
+
+class AccessTokenResponse(BaseMellyAPIModel):
+    access_token: str
+    refresh_token: str
