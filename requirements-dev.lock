@@ -32,6 +32,8 @@ click==8.1.7
     # via beanie
     # via typer
     # via uvicorn
+coolname==2.2.0
+    # via melly
 cryptography==42.0.8
     # via jwcrypto
 dnspython==2.6.1

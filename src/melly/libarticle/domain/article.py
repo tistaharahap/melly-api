@@ -35,7 +35,7 @@ class Article:
     ) -> List[ArticleOut]:
         sort_direction = -1 if sort.value == Sort.Descending.value else 1
         pipeline = [
-            {"$match": {"author_id": user.identifier, "deleted_at": {"$eq": None}}},
+            {"$match": {"author_id": user.username, "deleted_at": {"$eq": None}}},
             {"$skip": skip},
             {"$limit": limit},
             {"$sort": {"created_at": sort_direction}},
@@ -43,7 +43,7 @@ class Article:
                 "$lookup": {
                     "from": "users",
                     "localField": "author_id",
-                    "foreignField": "identifier",
+                    "foreignField": "username",
                     "as": "author",
                 }
             },
@@ -60,7 +60,7 @@ class Article:
                 "$lookup": {
                     "from": "users",
                     "localField": "author_id",
-                    "foreignField": "identifier",
+                    "foreignField": "username",
                     "as": "author",
                 }
             },
@@ -77,13 +77,13 @@ class Article:
     async def create_article(cls, payload: ArticleIn, user: User) -> ArticleOut:
         now = datetime.now(tz=pytz.UTC)
         slug = f"{slugify(payload.title)}-{int(now.timestamp())}"
-        article = ArticleModel(**payload.model_dump(), slug=slug, author_id=user.identifier)
+        article = ArticleModel(**payload.model_dump(), slug=slug, author_id=user.username)
         await article.save()
         return await cls.get_article_by_slug(slug=slug)
 
     @classmethod
     async def update_article(cls, payload: ArticleIn, user: User, slug: str) -> ArticleOut:
-        article = await ArticleModel.find_one({"slug": slug, "author_id": user.identifier})
+        article = await ArticleModel.find_one({"slug": slug, "author_id": user.username})
         if article is None:
             raise HTTPException(status_code=404, detail="Article not found")
 
