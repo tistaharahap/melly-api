@@ -49,6 +49,7 @@ exclude = [".bzr", ".direnv", ".eggs", ".git", ".git-rewrite", ".hg", ".mypy_cac
 
 [tool.rye.scripts]
 docker-build = "bin/docker-build.sh"
+test = "pytest -x -vv tests"
 
 [tool.pytest_env]
 BASE_URL = "http://localhost:8000"
