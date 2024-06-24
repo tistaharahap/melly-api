@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from beanie import Document
+import pytz
+from beanie import Document, before_event, Replace, Update, SaveChanges
 from pydantic import HttpUrl, Field
 
 from melly.libshared.models import BaseDateTimeMeta, BaseMellyAPIModel
@@ -15,6 +16,10 @@ class Article(Document, BaseDateTimeMeta):
     content_in_markdown: str
 
     author_id: str
+
+    @before_event(Replace, Update, SaveChanges)
+    async def bump_updated_at(self):
+        self.updated_at = datetime.now(tz=pytz.UTC)
 
     class Settings:
         name = "articles"

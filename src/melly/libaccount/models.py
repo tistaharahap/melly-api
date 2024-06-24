@@ -94,3 +94,7 @@ class MyProfile(BaseMellyAPIModel):
     username: str | None = None
 
     created_at: datetime = Field(..., alias="createdAt")
+
+
+class UsernameIn(BaseMellyAPIModel):
+    username: str

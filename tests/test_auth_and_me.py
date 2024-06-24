@@ -9,7 +9,7 @@ from melly.libaccount.models import AccessTokenResponse, MyProfile
 
 
 @pytest.mark.asyncio
-async def test_auth(api_client: AsyncClient, google_auth):
+async def test_auth_and_me(api_client: AsyncClient, google_auth):
     extra = {"key": token_hex(55)}
     params = {"extra": ujson.dumps(extra)}
     response = await api_client.get("/v1/me/auth/google", params=params)
@@ -55,3 +55,14 @@ async def test_auth(api_client: AsyncClient, google_auth):
     assert my_profile.name
     assert my_profile.picture
     assert my_profile.username
+
+    # Update username
+    payload = {"username": token_hex(23)}
+
+    response = await api_client.put("/v1/me/username", headers=headers, json=payload)
+
+    assert response.status_code == 200
+
+    updated_profile = MyProfile(**response.json())
+
+    assert updated_profile.username == payload.get("username")

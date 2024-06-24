@@ -1,6 +1,8 @@
+from datetime import datetime
 from typing import List
 
-from beanie import Document
+import pytz
+from beanie import Document, before_event, Replace, Update, SaveChanges
 from pydantic import HttpUrl, Field
 
 from melly.libshared.models import BaseDateTimeMeta, BaseMellyAPIModel
@@ -12,6 +14,10 @@ class BookmarkItem(Document, BaseDateTimeMeta):
     content: str | None = None
     slug: str
     owner_id: str
+
+    @before_event(Replace, Update, SaveChanges)
+    async def bump_updated_at(self):
+        self.updated_at = datetime.now(tz=pytz.UTC)
 
     class Settings:
         name = "bookmark-items"
@@ -29,3 +35,6 @@ class BookmarkItemOut(BookmarkItemIn):
     owner_name: str
     owner_picture: HttpUrl | None = None
     owner_id: str
+
+    created_at: datetime
+    updated_at: datetime | None = None

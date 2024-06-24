@@ -8,7 +8,7 @@ from fastapi import Request
 
 from melly.appmellyapi.auth import jwt_auth
 from melly.libaccount.domain.account import Account
-from melly.libaccount.models import AccessTokenResponse, RefreshToken, MyProfile
+from melly.libaccount.models import AccessTokenResponse, RefreshToken, MyProfile, UsernameIn
 from melly.libshared.models import UrlResponse, TokenPayload
 
 me_router = APIRouter()
@@ -104,3 +104,22 @@ async def my_profile(
 ):
     user = await Account.get_user_by_email(email=claims.email)
     return MyProfile(**user.model_dump())
+
+
+@me_router.put(
+    "/me/username",
+    summary="Update my username",
+    tags=["me"],
+    response_model=MyProfile,
+)
+async def update_username(
+    payload: UsernameIn,
+    claims: Annotated[
+        TokenPayload,
+        Doc("""
+            The projection model for the JWT token.
+        """),
+    ] = Depends(jwt_auth),
+):
+    user = await Account.get_user_by_email(email=claims.email)
+    return await Account.update_username(payload=payload, user=user)

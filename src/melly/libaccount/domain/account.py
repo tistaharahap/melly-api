@@ -12,7 +12,7 @@ from pydantic import IPvAnyAddress, ValidationError
 from slugify import slugify
 
 from melly.appmellyapi.auth import jwt_auth
-from melly.libaccount.models import SocialAuthSession, User, AccessTokenResponse, RefreshToken
+from melly.libaccount.models import SocialAuthSession, User, AccessTokenResponse, RefreshToken, UsernameIn, MyProfile
 from melly.libshared.models import UrlResponse
 from melly.libshared.settings import api_settings
 
@@ -202,3 +202,14 @@ class Account:
         access_token = cls.generate_access_token(user=user)
 
         return AccessTokenResponse(access_token=access_token, refresh_token=payload.refresh_token)
+
+    @classmethod
+    async def update_username(cls, payload: UsernameIn, user: User) -> MyProfile:
+        query = {"username": payload.username}
+        existing_user = await User.find_one(query)
+        if existing_user:
+            raise HTTPException(status_code=409, detail="Username already exists")
+
+        user.username = payload.username
+        await user.save()
+        return MyProfile(**user.model_dump())
