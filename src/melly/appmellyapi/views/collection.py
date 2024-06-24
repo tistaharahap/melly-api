@@ -122,7 +122,7 @@ async def update_collection_by_slug(
 
 @collection_router.post(
     "/me/collections/{slug}/items",
-    summary="Update collection title",
+    summary="Add bookmark to collection",
     tags=["Collection"],
     response_model=CollectionOut,
     status_code=201,
