@@ -1,11 +1,12 @@
 from datetime import datetime
+from typing import List
 
 import pytz
 from coolname import generate_slug
 from fastapi import HTTPException
 
 from melly.libaccount.models import User
-from melly.libcollection.models import BookmarkItem, BookmarkItemOut, BookmarkItemIn
+from melly.libcollection.models import BookmarkItem, BookmarkItemOut, BookmarkItemIn, BookmarkNoteIn, BookmarkNote
 
 
 class Bookmark:
@@ -52,6 +53,38 @@ class Bookmark:
         item.url = payload.url
         item.tags = payload.tags
         item.content = payload.content
+        await item.save()
+
+        return await cls.get_bookmark_by_slug(slug=slug)
+
+    @classmethod
+    async def my_bookmarks(cls, user: User, skip: int = 0, limit: int = 10) -> List[BookmarkItemOut]:
+        pipeline = [
+            {"$match": {"owner_id": user.username, "deleted_at": {"$eq": None}}},
+            {
+                "$lookup": {
+                    "from": "users",
+                    "localField": "owner_id",
+                    "foreignField": "username",
+                    "as": "owner",
+                }
+            },
+            {"$unwind": "$owner"},
+            {"$skip": skip},
+            {"$limit": limit},
+        ]
+        result = await BookmarkItem.aggregate(pipeline).to_list(length=limit)
+        return [cls.build_bookmark_response(item) for item in result]
+
+    @classmethod
+    async def create_note(cls, payload: BookmarkNoteIn, slug: str, user: User) -> BookmarkItemOut:
+        query = {"slug": slug, "owner_id": user.username}
+        item = await BookmarkItem.find_one(query)
+        if not item:
+            raise HTTPException(status_code=404, detail="Bookmark item not found")
+
+        note = BookmarkNote(**payload.model_dump())
+        item.notes.append(note)
         await item.save()
 
         return await cls.get_bookmark_by_slug(slug=slug)

@@ -121,3 +121,26 @@ async def test_bookmark_item(api_client: AsyncClient, google_auth):
     assert updated_bookmark.owner_name == my_profile.name
     assert updated_bookmark.owner_picture == my_profile.picture
     assert updated_bookmark.slug == bookmark.slug
+
+    # My bookmarks
+    response = await api_client.get("/v1/bookmarks", headers=headers)
+
+    assert response.status_code == 200
+
+    bookmarks = [BookmarkItemOut(**x) for x in response.json()]
+
+    assert len(bookmarks) == 1
+    assert bookmarks[0].slug == bookmark.slug
+
+    # Create note
+    payload = {"content": fake.sentence()}
+
+    response = await api_client.post(f"/v1/bookmarks/{bookmark.slug}/notes", json=payload, headers=headers)
+
+    assert response.status_code == 201
+
+    bookmark = BookmarkItemOut(**response.json())
+
+    assert bookmark.notes
+    assert len(bookmark.notes) == 1
+    assert bookmark.notes[0].content == payload.get("content")
