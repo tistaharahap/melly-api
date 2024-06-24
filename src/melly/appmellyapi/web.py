@@ -7,6 +7,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from melly.appmellyapi.auth import jwt_auth
 from melly.appmellyapi.db import api_mongo_client, api_models
+from melly.appmellyapi.views.articles import article_router
 from melly.appmellyapi.views.me import me_router
 from melly.libshared.logger import logger
 from melly.libshared.settings import api_settings
@@ -51,3 +52,4 @@ jwt_auth.init_app(app)
 
 # User facing routes
 app.include_router(router=me_router, prefix="/v1")
+app.include_router(router=article_router, prefix="/v1")

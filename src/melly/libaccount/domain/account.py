@@ -26,7 +26,7 @@ class Account:
         raise ValueError("Invalid provider")
 
     @classmethod
-    async def create_social_auth_session(cls, request: Request, extra: str, provider: Literal["google"]) -> UrlResponse:
+    async def create_login_url(cls, request: Request, extra: str, provider: Literal["google"]) -> UrlResponse:
         try:
             extra = ujson.loads(extra)
         except ujson.JSONDecodeError:
@@ -114,9 +114,14 @@ class Account:
         return user
 
     @classmethod
-    async def get_user_by_email(cls, email: str) -> User | None:
+    async def get_user_by_email(
+        cls, email: str, raise_for_error: bool = False, status_code: int = 404, error_message: str = "User not found"
+    ) -> User | None:
         query = {"email": email}
-        return await User.find_one(query)
+        user = await User.find_one(query)
+        if raise_for_error and not user:
+            raise HTTPException(status_code=status_code, detail=error_message)
+        return user
 
     @classmethod
     async def maybe_create_user(cls, email: str, name: str, picture: str, session: SocialAuthSession) -> User:
@@ -144,7 +149,7 @@ class Account:
             issuer=jwt_auth.issuer,
             expiry=api_settings.auth_token_expiry,
             audience=jwt_auth.audience,
-            subject=str(user.id),
+            subject=user.identifier,
         )
         claims = {"email": user.email, "name": user.name, "picture": str(user.picture)}
 

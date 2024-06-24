@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from secrets import token_hex
 from typing import Literal, List
@@ -16,6 +17,11 @@ class User(Document, BaseDateTimeMeta):
 
     auth_provider: Literal["google"]
     auth_provider_user_id: List[str] = Field(default_factory=list)
+
+    identifier: str = Field(default_factory=lambda: str(uuid.uuid4()))
+
+    class Settings:
+        name = "users"
 
     @property
     def is_deleted(self) -> bool:

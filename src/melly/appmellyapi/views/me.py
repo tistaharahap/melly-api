@@ -29,7 +29,7 @@ async def get_google_login_url(
     ],
     request: Request,
 ):
-    return await Account.create_social_auth_session(request=request, extra=extra, provider="google")
+    return await Account.create_login_url(request=request, extra=extra, provider="google")
 
 
 @me_router.get(
