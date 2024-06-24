@@ -44,4 +44,4 @@ class MyProfile(BaseMellyAPIModel):
     name: str
     picture: HttpUrl | None = None
 
-    created_at: datetime
+    created_at: datetime = Field(..., alias="createdAt")
