@@ -8,8 +8,8 @@ from fastapi import Request
 
 from melly.appmellyapi.auth import jwt_auth
 from melly.libaccount.domain.account import Account
-from melly.libaccount.models import AccessTokenResponse, RefreshToken
-from melly.libshared.models import UrlResponse, TokenPayload, MyProfile
+from melly.libaccount.models import AccessTokenResponse, RefreshToken, MyProfile
+from melly.libshared.models import UrlResponse, TokenPayload
 
 me_router = APIRouter()
 

@@ -1,3 +1,4 @@
+from secrets import token_hex
 from typing import Literal, Tuple
 
 import httpx
@@ -8,6 +9,7 @@ from fastapi_jwt_auth3.errors import JWTDecodeError
 from fastapi_jwt_auth3.jwtauth import generate_jwt_token, verify_token
 from fastapi_jwt_auth3.models import JWTPresetClaims
 from pydantic import IPvAnyAddress, ValidationError
+from slugify import slugify
 
 from melly.appmellyapi.auth import jwt_auth
 from melly.libaccount.models import SocialAuthSession, User, AccessTokenResponse, RefreshToken
@@ -53,12 +55,6 @@ class Account:
         session = await SocialAuthSession.find_one(query)
         if not session:
             raise HTTPException(status_code=409, detail="Invalid session")
-
-        # now = datetime.now(tz=pytz.UTC)
-        # delta = now - session.created_at.astimezone(tz=pytz.UTC)
-        # if delta.seconds > api_settings.social_auth_expiry_in_seconds:
-        #     await session.remove_session()
-        #     raise HTTPException(status_code=409, detail="Invalid session")
 
         return session
 
@@ -109,6 +105,7 @@ class Account:
             picture=picture,
             auth_provider=session.auth_provider,
             auth_provider_user_id=[session.auth_provider_user_id],
+            username=slugify(f"{name}-{session.auth_provider_user_id}-{token_hex(5)}"),
         )
         await user.save()
         return user

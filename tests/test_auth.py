@@ -5,8 +5,7 @@ import pytest
 import ujson
 from httpx import AsyncClient
 
-from melly.libaccount.models import AccessTokenResponse
-from melly.libshared.models import MyProfile
+from melly.libaccount.models import AccessTokenResponse, MyProfile
 
 
 @pytest.mark.asyncio
@@ -55,3 +54,4 @@ async def test_auth(api_client: AsyncClient, google_auth):
     assert my_profile.email
     assert my_profile.name
     assert my_profile.picture
+    assert my_profile.username

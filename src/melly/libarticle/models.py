@@ -33,6 +33,7 @@ class ArticleOut(ArticleIn):
 
     author_name: str = Field(..., alias="authorName")
     author_picture: HttpUrl | None = Field(..., alias="authorPicture")
+    author_id: str
 
     canonical_url: HttpUrl = Field(..., alias="canonicalUrl")
 

@@ -6,9 +6,8 @@ import ujson
 from faker import Faker
 from httpx import AsyncClient
 
-from melly.libaccount.models import AccessTokenResponse
+from melly.libaccount.models import AccessTokenResponse, MyProfile
 from melly.libarticle.models import ArticleOut
-from melly.libshared.models import MyProfile
 
 fake = Faker()
 
@@ -59,6 +58,7 @@ async def test_articles(api_client: AsyncClient, google_auth):
     assert my_profile.email
     assert my_profile.name
     assert my_profile.picture
+    assert my_profile.username
 
     # Create article
     payload = {

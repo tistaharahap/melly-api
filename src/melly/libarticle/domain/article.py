@@ -24,6 +24,7 @@ class Article:
             content_in_markdown=article.get("content_in_markdown"),
             author_name=article.get("author").get("name"),
             author_picture=article.get("author").get("picture"),
+            author_id=article.get("author").get("username"),
             created_at=article.get("created_at"),
             canonical_url=canonical_url,
         )

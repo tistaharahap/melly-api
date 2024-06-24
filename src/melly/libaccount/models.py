@@ -14,6 +14,7 @@ class User(Document, BaseDateTimeMeta):
     email: EmailStr
     name: str
     picture: HttpUrl | None = None
+    username: str
 
     auth_provider: Literal["google"]
     auth_provider_user_id: List[str] = Field(default_factory=list)
@@ -84,3 +85,12 @@ class AccessTokenResponse(BaseMellyAPIModel):
 
 class RefreshToken(BaseMellyAPIModel):
     refresh_token: str = Field(..., alias="refreshToken")
+
+
+class MyProfile(BaseMellyAPIModel):
+    email: EmailStr
+    name: str
+    picture: HttpUrl | None = None
+    username: str | None = None
+
+    created_at: datetime = Field(..., alias="createdAt")
