@@ -1,6 +1,7 @@
+from enum import Enum
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import RedirectResponse
 from typing_extensions import Doc
 
@@ -14,6 +15,17 @@ from melly.libshared.models import UrlResponse, TokenPayload
 me_router = APIRouter()
 
 
+class Descriptions(str, Enum):
+    """
+    Parameter descriptions for the me_router endpoints.
+    """
+
+    LoginUrlExtra = "Extra state params encoded as a JSON string. Will be returned when redirected back to the FE."
+    OauthCallbackState = "The state from the OAuth session returned by the OAuth provider."
+    OauthCallbackCode = "The authorization code from the OAuth provider."
+    AccessTokenCode = "The authorization code from the API given to the FE to exchange for an access token."
+
+
 @me_router.get(
     "/me/auth/google",
     summary="Get Google Login URL",
@@ -21,13 +33,14 @@ me_router = APIRouter()
     response_model=UrlResponse,
 )
 async def get_google_login_url(
-    extra: Annotated[
-        str,
-        Doc("""
-            Extra state params encoded as a JSON string. Will be returned when redirected back to the FE.
-        """),
-    ],
     request: Request,
+    extra: Annotated[
+        str | None,
+        Doc(Descriptions.LoginUrlExtra.value),
+    ] = Query(
+        None,
+        description=Descriptions.LoginUrlExtra.value,
+    ),
 ):
     return await Account.create_login_url(request=request, extra=extra, provider="google")
 
@@ -41,16 +54,12 @@ async def get_google_login_url(
 async def google_auth_callback(
     state: Annotated[
         str,
-        Doc("""
-            The state from the Google auth session.
-        """),
-    ],
+        Doc(Descriptions.OauthCallbackState.value),
+    ] = Query(..., description=Descriptions.OauthCallbackState.value),
     code: Annotated[
         str,
-        Doc("""
-            The authorization code from Google.
-        """),
-    ],
+        Doc(Descriptions.OauthCallbackState.value),
+    ] = Query(..., description=Descriptions.OauthCallbackCode.value),
 ):
     session = await Account.get_auth_session(nonce=state)
     email, name, picture = await Account.authorize_google(code=code, session=session)
@@ -70,10 +79,8 @@ async def google_auth_callback(
 async def exchange_code(
     code: Annotated[
         str,
-        Doc("""
-            The authorization code from the auth provider.
-        """),
-    ],
+        Doc(Descriptions.AccessTokenCode.value),
+    ] = Query(..., description=Descriptions.AccessTokenCode.value),
 ):
     return await Account.exchange_code(code=code)
 

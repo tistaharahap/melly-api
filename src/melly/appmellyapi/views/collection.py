@@ -1,6 +1,7 @@
+from enum import Enum
 from typing import Annotated, List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query, Path
 from typing_extensions import Doc
 
 from melly.appmellyapi.auth import jwt_auth
@@ -11,6 +12,16 @@ from melly.libcollection.models import CollectionOut, CollectionIn, CollectionTi
 from melly.libshared.models import TokenPayload
 
 collection_router = APIRouter()
+
+
+class Descriptions(str, Enum):
+    """
+    Parameter descriptions for the collection_router endpoints.
+    """
+
+    Skip = "The number of collections to skip."
+    Limit = "The number of collections to return."
+    Slug = "The slug of the collection."
 
 
 @collection_router.post(
@@ -44,16 +55,12 @@ async def create_collection(
 async def my_collections(
     skip: Annotated[
         int,
-        Doc("""
-            The number of collections to skip.
-        """),
-    ] = 0,
+        Doc(Descriptions.Skip.value),
+    ] = Query(0, description=Descriptions.Skip.value),
     limit: Annotated[
         int,
-        Doc("""
-            The number of collections to limit.
-        """),
-    ] = 10,
+        Doc(Descriptions.Limit.value),
+    ] = Query(10, description=Descriptions.Limit.value),
     claims: Annotated[
         TokenPayload,
         Doc("""
@@ -76,10 +83,8 @@ async def my_collections(
 async def get_collection_by_slug(
     slug: Annotated[
         str,
-        Doc("""
-            The slug of the collection.
-        """),
-    ],
+        Doc(Descriptions.Slug.value),
+    ] = Path(..., description=Descriptions.Slug.value),
     claims: Annotated[
         TokenPayload,
         Doc("""
@@ -100,13 +105,11 @@ async def get_collection_by_slug(
     response_model=CollectionOut,
 )
 async def update_collection_by_slug(
+    payload: CollectionTitleIn,
     slug: Annotated[
         str,
-        Doc("""
-            The slug of the collection.
-        """),
-    ],
-    payload: CollectionTitleIn,
+        Doc(Descriptions.Slug.value),
+    ] = Path(..., description=Descriptions.Slug.value),
     claims: Annotated[
         TokenPayload,
         Doc("""
@@ -128,13 +131,11 @@ async def update_collection_by_slug(
     status_code=201,
 )
 async def add_bookmark_to_collection(
+    payload: SlugIn,
     slug: Annotated[
         str,
-        Doc("""
-            The slug of the collection.
-        """),
-    ],
-    payload: SlugIn,
+        Doc(Descriptions.Slug.value),
+    ] = Path(..., description=Descriptions.Slug.value),
     claims: Annotated[
         TokenPayload,
         Doc("""

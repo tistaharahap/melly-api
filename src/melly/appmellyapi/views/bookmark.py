@@ -1,6 +1,7 @@
+from enum import Enum
 from typing import Annotated, List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query, Path
 from typing_extensions import Doc
 
 from melly.appmellyapi.auth import jwt_auth
@@ -10,6 +11,16 @@ from melly.libcollection.models import BookmarkItemIn, BookmarkItemOut, Bookmark
 from melly.libshared.models import TokenPayload
 
 bookmark_router = APIRouter()
+
+
+class Descriptions(str, Enum):
+    """
+    Parameter descriptions for the bookmark_router endpoints.
+    """
+
+    Skip = "The number of bookmarks to skip."
+    Limit = "The number of bookmarks to return."
+    Slug = "The slug of the bookmark."
 
 
 @bookmark_router.post(
@@ -43,16 +54,12 @@ async def create_bookmark(
 async def my_bookmarks(
     skip: Annotated[
         int,
-        Doc("""
-            The number of bookmarks to skip.
-        """),
-    ] = 0,
+        Doc(Descriptions.Skip.value),
+    ] = Query(0, description=Descriptions.Skip.value),
     limit: Annotated[
         int,
-        Doc("""
-            The number of bookmarks to limit.
-        """),
-    ] = 10,
+        Doc(Descriptions.Limit.value),
+    ] = Query(10, description=Descriptions.Limit.value),
     claims: Annotated[
         TokenPayload,
         Doc("""
@@ -75,10 +82,8 @@ async def my_bookmarks(
 async def bookmark_by_slug(
     slug: Annotated[
         str,
-        Doc("""
-            The slug of the bookmark.
-        """),
-    ],
+        Doc(Descriptions.Slug.value),
+    ] = Path(..., description=Descriptions.Slug.value),
 ):
     return await Bookmark.get_bookmark_by_slug(slug=slug)
 
@@ -90,18 +95,16 @@ async def bookmark_by_slug(
     response_model=BookmarkItemOut,
 )
 async def update_bookmark_by_slug(
-    slug: Annotated[
-        str,
-        Doc("""
-            The slug of the bookmark.
-        """),
-    ],
     payload: Annotated[
         BookmarkItemIn,
         Doc("""
             The bookmark payload.
         """),
     ],
+    slug: Annotated[
+        str,
+        Doc(Descriptions.Slug.value),
+    ] = Path(..., description=Descriptions.Slug.value),
     claims: Annotated[
         TokenPayload,
         Doc("""
@@ -123,18 +126,16 @@ async def update_bookmark_by_slug(
     status_code=201,
 )
 async def add_note(
-    slug: Annotated[
-        str,
-        Doc("""
-            The slug of the bookmark.
-        """),
-    ],
     payload: Annotated[
         BookmarkNoteIn,
         Doc("""
             The bookmark note payload.
         """),
     ],
+    slug: Annotated[
+        str,
+        Doc(Descriptions.Slug.value),
+    ] = Path(..., description=Descriptions.Slug.value),
     claims: Annotated[
         TokenPayload,
         Doc("""

@@ -1,6 +1,7 @@
+from enum import Enum
 from typing import Annotated, List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query, Path
 from typing_extensions import Doc
 
 from melly.appmellyapi.auth import jwt_auth
@@ -10,6 +11,16 @@ from melly.libarticle.models import ArticleOut, ArticleIn
 from melly.libshared.models import TokenPayload
 
 article_router = APIRouter()
+
+
+class Descriptions(str, Enum):
+    """
+    Parameter descriptions for the article_router endpoints.
+    """
+
+    Skip = "The number of articles to skip."
+    Limit = "The number of articles to return."
+    Slug = "The slug of the article."
 
 
 @article_router.get(
@@ -27,16 +38,12 @@ async def my_articles(
     ] = Depends(jwt_auth),
     skip: Annotated[
         int,
-        Doc("""
-            The number of articles to skip.
-        """),
-    ] = 0,
+        Doc(Descriptions.Skip.value),
+    ] = Query(0, description=Descriptions.Skip.value),
     limit: Annotated[
         int,
-        Doc("""
-            The number of articles to skip.
-        """),
-    ] = 10,
+        Doc(Descriptions.Limit.value),
+    ] = Query(10, description=Descriptions.Limit.value),
 ):
     user = await Account.get_user_by_email(
         email=claims.email, raise_for_error=True, status_code=401, error_message="Invalid token"
@@ -53,10 +60,8 @@ async def my_articles(
 async def article_by_slug(
     slug: Annotated[
         str,
-        Doc("""
-            The slug of the article.
-        """),
-    ],
+        Doc(Descriptions.Slug.value),
+    ] = Path(..., description=Descriptions.Slug.value),
 ):
     return await Article.get_article_by_slug(slug=slug)
 
@@ -95,18 +100,16 @@ async def create_article(
     response_model=ArticleOut,
 )
 async def update_article_by_slug(
-    slug: Annotated[
-        str,
-        Doc("""
-            The slug of the article.
-        """),
-    ],
     payload: Annotated[
         ArticleIn,
         Doc("""
             The article payload.
         """),
     ],
+    slug: Annotated[
+        str,
+        Doc(Descriptions.Slug.value),
+    ] = Path(..., description=Descriptions.Slug.value),
     claims: Annotated[
         TokenPayload,
         Doc("""
