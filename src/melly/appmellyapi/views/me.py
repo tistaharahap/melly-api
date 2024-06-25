@@ -38,7 +38,7 @@ async def get_google_login_url(
         str | None,
         Doc(Descriptions.LoginUrlExtra.value),
     ] = Query(
-        None,
+        "{}",
         description=Descriptions.LoginUrlExtra.value,
     ),
 ):
